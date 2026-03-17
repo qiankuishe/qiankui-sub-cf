@@ -67,6 +67,32 @@ a {
   min-height: 100vh;
 }
 
+.top-toast {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(34, 24, 18, 0.92);
+  color: #fff8f0;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(12px);
+}
+
+.toast-fade-enter-active,
+.toast-fade-leave-active {
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.toast-fade-enter-from,
+.toast-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-8px);
+}
+
 .login-page,
 .dashboard-page {
   min-height: 100vh;
@@ -475,11 +501,25 @@ p {
   width: min(360px, 100%);
 }
 
+.confirm-card {
+  width: min(420px, 100%);
+}
+
+.confirm-text {
+  margin-bottom: 18px;
+  color: var(--text);
+}
+
 .qr-image {
   width: 100%;
   border-radius: 20px;
   background: #fff;
   padding: 12px;
+}
+
+.danger-fill {
+  background: linear-gradient(135deg, #c85b43 0%, #a23822 100%);
+  box-shadow: 0 14px 24px rgba(176, 70, 51, 0.22);
 }
 
 @media (max-width: 900px) {

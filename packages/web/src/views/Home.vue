@@ -18,7 +18,10 @@ const errorMessage = ref('');
 const qrDialogVisible = ref(false);
 const qrTitle = ref('');
 const qrCodeUrl = ref('');
+const toastMessage = ref('');
+const deleteTarget = ref<Source | null>(null);
 let validateTimer: number | undefined;
+let toastTimer: number | undefined;
 
 const dialogTitle = computed(() => (editingSource.value ? '编辑订阅源' : '新增订阅源'));
 const cacheStatusText = computed(() => {
@@ -103,12 +106,8 @@ async function saveSource() {
   }
 }
 
-async function removeSource(source: Source) {
-  if (!window.confirm(`确定删除「${source.name}」吗？`)) {
-    return;
-  }
-  await store.deleteSource(source.id);
-  await store.loadAll();
+function removeSource(source: Source) {
+  deleteTarget.value = source;
 }
 
 async function moveSource(source: Source, direction: -1 | 1) {
@@ -125,6 +124,7 @@ async function moveSource(source: Source, direction: -1 | 1) {
 
 async function copyLink(url: string) {
   await navigator.clipboard.writeText(url);
+  showToast('复制成功');
 }
 
 async function showQr(name: string, url: string) {
@@ -171,10 +171,36 @@ async function refreshLogs() {
   const data = await logsApi.getRecent(50);
   store.logs = data.logs;
 }
+
+function showToast(message: string) {
+  toastMessage.value = message;
+  if (toastTimer) {
+    window.clearTimeout(toastTimer);
+  }
+  toastTimer = window.setTimeout(() => {
+    toastMessage.value = '';
+  }, 1800);
+}
+
+async function confirmDelete() {
+  if (!deleteTarget.value) {
+    return;
+  }
+  await store.deleteSource(deleteTarget.value.id);
+  await store.loadAll();
+  deleteTarget.value = null;
+  showToast('订阅源已删除');
+}
 </script>
 
 <template>
   <div class="dashboard-page">
+    <transition name="toast-fade">
+      <div v-if="toastMessage" class="top-toast">
+        {{ toastMessage }}
+      </div>
+    </transition>
+
     <header class="app-header">
       <div class="brand-block">
         <img src="/logo.png" alt="QianKui" class="brand-logo" />
@@ -350,6 +376,23 @@ async function refreshLogs() {
           <button class="ghost small" @click="qrDialogVisible = false">关闭</button>
         </div>
         <img :src="qrCodeUrl" alt="QRCode" class="qr-image" />
+      </div>
+    </div>
+
+    <div v-if="deleteTarget" class="modal-backdrop" @click.self="deleteTarget = null">
+      <div class="modal-card confirm-card">
+        <div class="section-head">
+          <div>
+            <h2>确认删除</h2>
+            <p class="section-subtitle">删除后需要重新添加订阅源才能恢复。</p>
+          </div>
+          <button class="ghost small" @click="deleteTarget = null">关闭</button>
+        </div>
+        <p class="confirm-text">确定删除「{{ deleteTarget.name }}」吗？</p>
+        <div class="dialog-actions">
+          <button class="ghost" @click="deleteTarget = null">取消</button>
+          <button class="primary danger-fill" @click="confirmDelete">删除</button>
+        </div>
       </div>
     </div>
   </div>
