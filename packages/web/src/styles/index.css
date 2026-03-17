@@ -190,12 +190,37 @@ p {
   box-shadow: 0 0 0 4px rgba(160, 98, 45, 0.14);
 }
 
-.password-row {
-  gap: 10px;
+.password-field {
+  position: relative;
 }
 
-.password-row input {
-  flex: 1;
+.password-field input {
+  padding-right: 52px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-soft);
+  display: grid;
+  place-items: center;
+}
+
+.password-toggle:hover {
+  background: rgba(160, 98, 45, 0.08);
+  color: var(--accent);
+}
+
+.password-toggle svg {
+  width: 18px;
+  height: 18px;
 }
 
 .primary,
@@ -362,7 +387,14 @@ p {
 }
 
 .link-item p {
-  word-break: break-all;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.link-item > div:first-child {
+  min-width: 0;
 }
 
 .link-actions,

@@ -133,6 +133,13 @@ async function showQr(name: string, url: string) {
   qrDialogVisible.value = true;
 }
 
+function shortenUrl(url: string, maxLength = 54) {
+  if (url.length <= maxLength) {
+    return url;
+  }
+  return `${url.slice(0, maxLength)}...`;
+}
+
 async function logout() {
   await authApi.logout().catch(() => undefined);
   await router.push('/login');
@@ -204,7 +211,7 @@ async function refreshLogs() {
           <article v-for="format in store.subFormats" :key="format.key" class="link-item">
             <div>
               <h3>{{ format.name }}</h3>
-              <p>{{ format.url }}</p>
+              <p :title="format.url">{{ shortenUrl(format.url) }}</p>
             </div>
             <div class="link-actions">
               <button class="ghost small" @click="copyLink(format.url)">复制</button>
