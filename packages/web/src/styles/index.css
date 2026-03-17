@@ -305,7 +305,7 @@ p {
 }
 
 .dashboard-stack > .panel + .panel {
-  margin-top: 44px;
+  margin-top: 22px;
 }
 
 .section-head {
@@ -493,7 +493,7 @@ p {
   }
 
   .dashboard-stack > .panel + .panel {
-    margin-top: 26px;
+    margin-top: 13px;
   }
 
   .meta-grid {
@@ -506,5 +506,19 @@ p {
   .source-card,
   .log-head {
     align-items: flex-start;
+  }
+
+  .link-item,
+  .source-card {
+    flex-direction: column;
+  }
+
+  .link-actions,
+  .source-actions {
+    width: 100%;
+  }
+
+  .link-item p {
+    width: 100%;
   }
 }
