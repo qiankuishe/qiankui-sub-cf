@@ -165,7 +165,7 @@ p {
 }
 
 .login-form,
-.dashboard-grid {
+.dashboard-stack {
   gap: 18px;
 }
 
@@ -278,7 +278,7 @@ p {
 .app-header {
   justify-content: space-between;
   gap: 20px;
-  padding: 24px 28px 0;
+  padding: 18px 20px 0;
 }
 
 .brand-block {
@@ -291,33 +291,20 @@ p {
   justify-content: flex-end;
 }
 
-.dashboard-grid {
-  padding: 24px 28px 32px;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+.dashboard-stack {
+  padding: 16px 20px 24px;
 }
 
 .panel {
   border-radius: 28px;
-  padding: 24px;
+  padding: 18px 18px 16px;
   min-width: 0;
-}
-
-.hero-panel {
-  grid-column: span 12;
-}
-
-.dashboard-grid > .panel:nth-child(2) {
-  grid-column: span 7;
-}
-
-.dashboard-grid > .panel:nth-child(3) {
-  grid-column: span 5;
 }
 
 .section-head {
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .status-pill {
@@ -341,28 +328,28 @@ p {
 
 .meta-grid {
   gap: 14px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
   flex-wrap: wrap;
 }
 
 .metric-card {
-  min-width: 170px;
+  min-width: 150px;
   flex: 1;
   border-radius: 20px;
-  padding: 16px 18px;
+  padding: 12px 14px;
   border: 1px solid var(--line);
   background: var(--bg-panel-strong);
 }
 
 .metric-card span {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   color: var(--text-soft);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .metric-card strong {
-  font-size: 16px;
+  font-size: 15px;
 }
 
 .link-list,
@@ -377,13 +364,13 @@ p {
   border: 1px solid var(--line);
   background: var(--bg-panel-strong);
   border-radius: 20px;
-  padding: 16px 18px;
+  padding: 13px 14px;
 }
 
 .link-item,
 .source-card {
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 }
 
 .link-item p {
@@ -391,10 +378,23 @@ p {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 14px;
 }
 
 .link-item > div:first-child {
   min-width: 0;
+}
+
+.link-item h3,
+.source-card h3,
+.section-head h2 {
+  line-height: 1.2;
+}
+
+.source-card p,
+.section-subtitle,
+.log-item p {
+  font-size: 14px;
 }
 
 .link-actions,
@@ -415,7 +415,7 @@ p {
 }
 
 .empty-state {
-  padding: 28px;
+  padding: 22px;
   border-radius: 20px;
   border: 1px dashed var(--line);
   color: var(--text-soft);
@@ -471,14 +471,9 @@ p {
 
 @media (max-width: 900px) {
   .app-header,
-  .dashboard-grid {
+  .dashboard-stack {
     padding-left: 16px;
     padding-right: 16px;
-  }
-
-  .dashboard-grid > .panel:nth-child(2),
-  .dashboard-grid > .panel:nth-child(3) {
-    grid-column: span 12;
   }
 
   .app-header,

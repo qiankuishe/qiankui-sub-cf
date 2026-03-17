@@ -172,8 +172,8 @@ async function refreshLogs() {
       </div>
     </header>
 
-    <main class="dashboard-grid">
-      <section class="panel hero-panel">
+    <main class="dashboard-stack">
+      <section class="panel">
         <div class="section-head">
           <div>
             <h2>订阅链接</h2>
