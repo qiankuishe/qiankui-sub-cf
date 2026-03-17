@@ -53,6 +53,8 @@ export interface NavigationLink {
   url: string;
   description: string;
   sortOrder: number;
+  visitCount: number;
+  lastVisitedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -199,6 +201,10 @@ export const navigationApi = {
   deleteLink: (id: string) =>
     request<{ success: boolean }>(`/api/navigation/links/${id}`, {
       method: 'DELETE'
+    }),
+  recordVisit: (id: string) =>
+    request<{ visitCount: number; lastVisitedAt: string | null }>(`/api/navigation/links/${id}/visit`, {
+      method: 'POST'
     }),
   reorderLinks: (categoryId: string, ids: string[]) =>
     request<{ links: NavigationLink[] }>('/api/navigation/links/reorder', {

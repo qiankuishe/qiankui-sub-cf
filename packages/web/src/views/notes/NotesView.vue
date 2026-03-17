@@ -2,6 +2,7 @@
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import { computed, nextTick, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { useNotesStore } from '../../stores/notes';
 import { useUiStore } from '../../stores/ui';
 import { formatDateTime } from '../../utils/date';
@@ -10,6 +11,7 @@ marked.setOptions({ breaks: true, gfm: true });
 
 const notesStore = useNotesStore();
 const uiStore = useUiStore();
+const route = useRoute();
 
 const selectedNoteId = ref<string | null>(null);
 const editTitle = ref('');
@@ -17,6 +19,7 @@ const editContent = ref('');
 const previewMode = ref(false);
 const saveState = ref<'idle' | 'saving' | 'saved'>('idle');
 const deleteTargetId = ref<string | null>(null);
+const highlightedNoteId = ref<string | null>(null);
 let saveTimer: number | undefined;
 let hydrating = false;
 
@@ -58,6 +61,25 @@ watch([editTitle, editContent], () => {
 onMounted(() => {
   void notesStore.loadAll();
 });
+
+watch(
+  () => [route.query.focus, notesStore.notes] as const,
+  async ([focusId]) => {
+    if (typeof focusId !== 'string' || !focusId || !notesStore.notes.some((note) => note.id === focusId)) {
+      return;
+    }
+    selectNote(focusId);
+    highlightedNoteId.value = focusId;
+    await nextTick();
+    document.querySelector(`[data-note-id="${focusId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    window.setTimeout(() => {
+      if (highlightedNoteId.value === focusId) {
+        highlightedNoteId.value = null;
+      }
+    }, 2200);
+  },
+  { deep: true, immediate: true }
+);
 
 function selectNote(id: string) {
   selectedNoteId.value = id;
@@ -133,8 +155,12 @@ async function confirmDelete() {
           <button
             v-for="note in notesStore.notes"
             :key="note.id"
+            :data-note-id="note.id"
             class="note-list-item"
-            :class="{ 'note-list-item-active': note.id === selectedNoteId }"
+            :class="{
+              'note-list-item-active': note.id === selectedNoteId,
+              'search-highlight': note.id === highlightedNoteId
+            }"
             @click="selectNote(note.id)"
           >
             <div class="note-list-head">

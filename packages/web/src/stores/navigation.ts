@@ -8,6 +8,12 @@ export const useNavigationStore = defineStore('navigation', () => {
   const saving = ref(false);
 
   const totalLinks = computed(() => categories.value.reduce((sum, category) => sum + category.links.length, 0));
+  const recentLinks = computed(() =>
+    categories.value
+      .flatMap((category) => category.links.map((link) => ({ ...link, categoryName: category.name })))
+      .filter((link) => Boolean(link.lastVisitedAt))
+      .sort((left, right) => (right.lastVisitedAt ?? '').localeCompare(left.lastVisitedAt ?? ''))
+  );
 
   async function loadAll() {
     loading.value = true;
@@ -139,6 +145,23 @@ export const useNavigationStore = defineStore('navigation', () => {
     }
   }
 
+  async function recordVisit(linkId: string) {
+    const data = await navigationApi.recordVisit(linkId);
+    categories.value = categories.value.map((category) => ({
+      ...category,
+      links: category.links.map((link) =>
+        link.id === linkId
+          ? {
+              ...link,
+              visitCount: data.visitCount,
+              lastVisitedAt: data.lastVisitedAt
+            }
+          : link
+      )
+    }));
+    return data;
+  }
+
   function getCategory(categoryId: string | null) {
     if (!categoryId) {
       return null;
@@ -156,6 +179,7 @@ export const useNavigationStore = defineStore('navigation', () => {
   return {
     categories,
     totalLinks,
+    recentLinks,
     loading,
     saving,
     loadAll,
@@ -167,6 +191,7 @@ export const useNavigationStore = defineStore('navigation', () => {
     updateLink,
     deleteLink,
     reorderLinks,
+    recordVisit,
     getCategory,
     getLink
   };

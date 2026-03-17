@@ -56,6 +56,8 @@ interface NavigationLinkRecord {
   url: string;
   description: string;
   sortOrder: number;
+  visitCount: number;
+  lastVisitedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -439,6 +441,19 @@ app.post('/api/navigation/links', async (c) => {
   });
   await appendLog(c.env, 'nav_link_create', `创建导航站点: ${link.title}`);
   return c.json({ link });
+});
+
+app.post('/api/navigation/links/:id/visit', async (c) => {
+  const link = await getNavigationLink(c.env, c.req.param('id'));
+  if (!link) {
+    return c.json({ error: '站点不存在' }, 404);
+  }
+
+  const updated = await recordNavigationLinkVisit(c.env, link);
+  return c.json({
+    visitCount: updated.visitCount,
+    lastVisitedAt: updated.lastVisitedAt
+  });
 });
 
 app.put('/api/navigation/links/reorder', async (c) => {
@@ -1206,6 +1221,8 @@ async function ensureNavigationSeeded(env: Env): Promise<void> {
         url: linkSeed.url,
         description: linkSeed.description,
         sortOrder: linkIndex,
+        visitCount: 0,
+        lastVisitedAt: null,
         createdAt: linkNow,
         updatedAt: linkNow
       });
@@ -1302,7 +1319,23 @@ async function deleteNavigationCategory(env: Env, categoryId: string): Promise<v
 
 async function getNavigationLink(env: Env, id: string): Promise<NavigationLinkRecord | null> {
   const link = await env.APP_KV.get(`nav:link:${id}`, 'json');
-  return link as NavigationLinkRecord | null;
+  if (!link) {
+    return null;
+  }
+
+  const record = link as Partial<NavigationLinkRecord>;
+  return {
+    id: record.id ?? id,
+    categoryId: record.categoryId ?? '',
+    title: record.title ?? '',
+    url: record.url ?? '',
+    description: record.description ?? '',
+    sortOrder: record.sortOrder ?? 0,
+    visitCount: record.visitCount ?? 0,
+    lastVisitedAt: record.lastVisitedAt ?? null,
+    createdAt: record.createdAt ?? new Date(0).toISOString(),
+    updatedAt: record.updatedAt ?? new Date(0).toISOString()
+  };
 }
 
 async function getNavigationLinkIndex(env: Env, categoryId: string): Promise<string[]> {
@@ -1337,6 +1370,8 @@ async function createNavigationLink(
     url: payload.url,
     description: payload.description,
     sortOrder: ids.length,
+    visitCount: 0,
+    lastVisitedAt: null,
     createdAt: now,
     updatedAt: now
   };
@@ -1404,6 +1439,15 @@ async function deleteNavigationLink(env: Env, linkId: string, categoryId: string
   await env.APP_KV.delete(`nav:link:${linkId}`);
   const nextIds = (await getNavigationLinkIndex(env, categoryId)).filter((id) => id !== linkId);
   await reorderNavigationLinks(env, categoryId, nextIds);
+}
+
+async function recordNavigationLinkVisit(env: Env, link: NavigationLinkRecord): Promise<NavigationLinkRecord> {
+  const updated: NavigationLinkRecord = {
+    ...link,
+    visitCount: (link.visitCount ?? 0) + 1,
+    lastVisitedAt: new Date().toISOString()
+  };
+  return saveNavigationLink(env, updated);
 }
 
 async function getNoteIndex(env: Env): Promise<string[]> {

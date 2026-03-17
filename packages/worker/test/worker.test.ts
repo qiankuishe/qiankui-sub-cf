@@ -151,6 +151,34 @@ describe('worker behaviors', () => {
     expect(data.categories[0].links.length).toBeGreaterThan(0);
   });
 
+  it('records navigation link visits', async () => {
+    const cookie = await login(env);
+    const navResponse = await app.request(
+      'https://example.com/api/navigation',
+      {
+        headers: { cookie }
+      },
+      env
+    );
+    const navData = (await navResponse.json()) as { categories: Array<{ links: Array<{ id: string }> }> };
+    const linkId = navData.categories[0]?.links[0]?.id;
+    expect(linkId).toBeTruthy();
+
+    const visitResponse = await app.request(
+      `https://example.com/api/navigation/links/${linkId}/visit`,
+      {
+        method: 'POST',
+        headers: { cookie }
+      },
+      env
+    );
+
+    const visitData = (await visitResponse.json()) as { visitCount: number; lastVisitedAt: string | null };
+    expect(visitResponse.status).toBe(200);
+    expect(visitData.visitCount).toBe(1);
+    expect(visitData.lastVisitedAt).toBeTruthy();
+  });
+
   it('creates and updates notes', async () => {
     const cookie = await login(env);
 

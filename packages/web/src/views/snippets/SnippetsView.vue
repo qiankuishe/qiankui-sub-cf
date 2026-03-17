@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { nextTick } from 'vue';
+import { useRoute } from 'vue-router';
 import type { SnippetRecord, SnippetType } from '../../api';
 import { useSnippetsStore } from '../../stores/snippets';
 import { useUiStore } from '../../stores/ui';
@@ -7,6 +9,7 @@ import { formatDateTime } from '../../utils/date';
 
 const snippetsStore = useSnippetsStore();
 const uiStore = useUiStore();
+const route = useRoute();
 
 const searchQuery = ref('');
 const filterType = ref<SnippetType | 'all'>('all');
@@ -17,6 +20,7 @@ const formType = ref<SnippetType>('text');
 const formTitle = ref('');
 const formContent = ref('');
 const errorMessage = ref('');
+const highlightedSnippetId = ref<string | null>(null);
 let searchTimer: number | undefined;
 
 const filteredLabel = computed(() => (filterType.value === 'all' ? '全部' : filterType.value));
@@ -31,8 +35,32 @@ watch([searchQuery, filterType], () => {
 });
 
 onMounted(() => {
-  void snippetsStore.loadAll({ type: 'all' });
+  if (typeof route.query.q === 'string') {
+    searchQuery.value = route.query.q;
+  }
+  if (typeof route.query.type === 'string' && ['all', 'text', 'code', 'link', 'image'].includes(route.query.type)) {
+    filterType.value = route.query.type as SnippetType | 'all';
+  }
+  void snippetsStore.loadAll({ type: filterType.value, q: searchQuery.value });
 });
+
+watch(
+  () => [route.query.focus, snippetsStore.snippets] as const,
+  async ([focusId]) => {
+    if (typeof focusId !== 'string' || !focusId || !snippetsStore.snippets.some((snippet) => snippet.id === focusId)) {
+      return;
+    }
+    highlightedSnippetId.value = focusId;
+    await nextTick();
+    document.querySelector(`[data-snippet-id="${focusId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    window.setTimeout(() => {
+      if (highlightedSnippetId.value === focusId) {
+        highlightedSnippetId.value = null;
+      }
+    }, 2200);
+  },
+  { deep: true, immediate: true }
+);
 
 function openDialog(snippet?: SnippetRecord) {
   editingSnippet.value = snippet ?? null;
@@ -157,7 +185,13 @@ function handleImageUpload(event: Event) {
 
       <div v-if="snippetsStore.snippets.length === 0" class="empty-state">当前筛选下还没有片段。</div>
       <div v-else class="snippet-grid">
-        <article v-for="snippet in snippetsStore.snippets" :key="snippet.id" class="snippet-card">
+        <article
+          v-for="snippet in snippetsStore.snippets"
+          :key="snippet.id"
+          :data-snippet-id="snippet.id"
+          class="snippet-card"
+          :class="{ 'search-highlight': snippet.id === highlightedSnippetId }"
+        >
           <div class="snippet-card-head">
             <div>
               <h3>{{ snippet.title }}</h3>
