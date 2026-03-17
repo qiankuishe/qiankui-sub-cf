@@ -26,9 +26,9 @@ const cacheStatusText = computed(() => {
     return '未加载';
   }
   const statusMap: Record<string, string> = {
-    fresh: '缓存新鲜',
-    stale: '缓存陈旧',
-    missing: '缓存缺失'
+    fresh: '缓存有效',
+    stale: '缓存较旧',
+    missing: '未生成缓存'
   };
   return statusMap[store.subInfo.cacheStatus] || store.subInfo.cacheStatus;
 });

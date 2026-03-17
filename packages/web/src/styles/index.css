@@ -293,7 +293,7 @@ p {
 
 .dashboard-stack {
   padding: 16px 20px 28px;
-  gap: 72px;
+  gap: 0;
 }
 
 .panel {
@@ -302,6 +302,10 @@ p {
   min-width: 0;
   width: min(100%, 680px);
   margin: 0 auto;
+}
+
+.dashboard-stack > .panel + .panel {
+  margin-top: 72px;
 }
 
 .section-head {
@@ -485,7 +489,11 @@ p {
   }
 
   .dashboard-stack {
-    gap: 36px;
+    gap: 0;
+  }
+
+  .dashboard-stack > .panel + .panel {
+    margin-top: 36px;
   }
 
   .meta-grid {
