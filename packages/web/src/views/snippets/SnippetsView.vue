@@ -170,6 +170,10 @@ function getSnippetTypeLabel(type: SnippetType) {
   return typeOptions.find((option) => option.key === type)?.label ?? type;
 }
 
+function getSnippetTypeClass(type: SnippetType) {
+  return `clipboard-type-${type}`;
+}
+
 function isSameLocalDay(value: string, reference: Date) {
   const date = new Date(value);
   return (
@@ -634,7 +638,7 @@ async function handleEditorImageUpload(event: Event) {
                 :key="option.key"
                 type="button"
                 class="clipboard-type-button"
-                :class="{ 'clipboard-type-button-active': draftType === option.key }"
+                :class="[getSnippetTypeClass(option.key), { 'clipboard-type-button-active': draftType === option.key }]"
                 @click="draftType = option.key"
               >
                 {{ option.label }}
@@ -717,6 +721,7 @@ async function handleEditorImageUpload(event: Event) {
                 v-for="snippet in pinnedSnippets"
                 :key="snippet.id"
                 :data-snippet-id="snippet.id"
+                :data-snippet-type="snippet.type"
                 class="snippet-card clipboard-card"
                 :class="{ 'search-highlight': snippet.id === highlightedSnippetId }"
               >
@@ -725,7 +730,10 @@ async function handleEditorImageUpload(event: Event) {
                     <h3>{{ snippet.title }}</h3>
                     <p>{{ getSnippetTypeLabel(snippet.type) }} · {{ formatDateTime(snippet.updatedAt, '未保存') }}</p>
                   </div>
-                  <span class="note-pin-badge">置顶</span>
+                  <div class="clipboard-card-tags">
+                    <span class="clipboard-type-badge" :class="getSnippetTypeClass(snippet.type)">{{ getSnippetTypeLabel(snippet.type) }}</span>
+                    <span class="note-pin-badge">置顶</span>
+                  </div>
                 </div>
 
                 <div v-if="snippet.type === 'image' && snippet.content" class="snippet-image-wrap">
@@ -780,6 +788,7 @@ async function handleEditorImageUpload(event: Event) {
                 v-for="snippet in recentSnippets"
                 :key="snippet.id"
                 :data-snippet-id="snippet.id"
+                :data-snippet-type="snippet.type"
                 class="snippet-card clipboard-card"
                 :class="{ 'search-highlight': snippet.id === highlightedSnippetId }"
               >
@@ -787,6 +796,9 @@ async function handleEditorImageUpload(event: Event) {
                   <div class="clipboard-card-title">
                     <h3>{{ snippet.title }}</h3>
                     <p>{{ getSnippetTypeLabel(snippet.type) }} · {{ formatDateTime(snippet.updatedAt, '未保存') }}</p>
+                  </div>
+                  <div class="clipboard-card-tags">
+                    <span class="clipboard-type-badge" :class="getSnippetTypeClass(snippet.type)">{{ getSnippetTypeLabel(snippet.type) }}</span>
                   </div>
                 </div>
 
