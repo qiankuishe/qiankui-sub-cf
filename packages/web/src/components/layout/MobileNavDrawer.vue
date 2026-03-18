@@ -77,7 +77,7 @@ watch(
     <div v-if="open" class="mobile-drawer-backdrop" @click.self="emit('close')">
       <aside class="mobile-drawer">
         <div class="mobile-drawer-head">
-          <button class="sidebar-brand sidebar-brand-button" type="button" title="重启当前板块" @click="handleBrandClick">
+          <button class="sidebar-brand sidebar-brand-button" type="button" title="冷启动当前页面" @click="handleBrandClick">
             <img src="/logo.png" alt="QianKui" class="sidebar-logo" />
             <strong>QianKui</strong>
           </button>
