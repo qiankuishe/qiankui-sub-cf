@@ -37,7 +37,7 @@ async function logout() {
 
 <template>
   <div class="page-shell page-shell-compact">
-    <section class="panel wide-panel">
+    <section class="panel compact-panel">
       <div class="section-head">
         <div>
           <h2>系统设置</h2>

@@ -521,10 +521,6 @@ p {
   width: min(100%, 680px);
 }
 
-.wide-panel {
-  width: min(100%, 820px);
-}
-
 .section-head {
   justify-content: space-between;
   gap: 16px;
@@ -650,7 +646,7 @@ p {
 }
 
 .page-action-row {
-  width: min(100%, 820px);
+  width: min(100%, 680px);
 }
 
 .compact-action-row {
@@ -1185,7 +1181,6 @@ p {
   }
 
   .compact-panel,
-  .wide-panel,
   .page-action-row,
   .snippet-filter {
     width: 100%;

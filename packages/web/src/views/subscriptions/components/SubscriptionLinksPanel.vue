@@ -23,7 +23,7 @@ function shortenUrl(url: string, maxLength = 54) {
 </script>
 
 <template>
-  <section class="panel wide-panel">
+  <section class="panel compact-panel">
     <div class="section-head">
       <div>
         <h2>订阅链接</h2>

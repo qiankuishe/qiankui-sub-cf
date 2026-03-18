@@ -24,7 +24,7 @@ function isLastSource(source: Source, sources: Source[]) {
 </script>
 
 <template>
-  <section class="panel wide-panel">
+  <section class="panel compact-panel">
     <div class="section-head">
       <div>
         <h2>订阅源管理</h2>
