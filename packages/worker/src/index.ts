@@ -125,6 +125,14 @@ app.use('*', async (c, next) => {
   await next();
 });
 
+app.get('/app', (c) => c.redirect('/', 302));
+app.get('/app/nav', (c) => c.redirect('/nav', 302));
+app.get('/app/subscriptions', (c) => c.redirect('/subscriptions', 302));
+app.get('/app/notes', (c) => c.redirect('/notes', 302));
+app.get('/app/snippets', (c) => c.redirect('/snippets', 302));
+app.get('/app/logs', (c) => c.redirect('/logs', 302));
+app.get('/app/settings', (c) => c.redirect('/settings', 302));
+
 app.get('/health', (c) => c.json({ status: 'ok' }));
 
 app.post('/api/auth/login', async (c) => {
@@ -644,9 +652,10 @@ app.get('/sub', async (c) => {
 
 app.notFound(async (c) => {
   if (c.env.ASSETS) {
-    if (shouldServeSpaIndex(c.req.raw)) {
-      const indexUrl = new URL('/index.html', c.req.raw.url);
-      return c.env.ASSETS.fetch(new Request(indexUrl.toString(), c.req.raw));
+    const pageAssetPath = resolvePageAssetPath(c.req.raw);
+    if (pageAssetPath) {
+      const pageUrl = new URL(pageAssetPath, c.req.raw.url);
+      return c.env.ASSETS.fetch(new Request(pageUrl.toString(), c.req.raw));
     }
     return c.env.ASSETS.fetch(c.req.raw);
   }
@@ -662,9 +671,9 @@ export default {
 
 export { app };
 
-function shouldServeSpaIndex(request: Request): boolean {
+function resolvePageAssetPath(request: Request): string | null {
   if (request.method !== 'GET') {
-    return false;
+    return null;
   }
 
   const url = new URL(request.url);
@@ -678,10 +687,21 @@ function shouldServeSpaIndex(request: Request): boolean {
     pathname === '/favicon.ico' ||
     pathname === '/logo.png'
   ) {
-    return false;
+    return null;
   }
 
-  return !pathname.split('/').pop()?.includes('.');
+  const pageMap: Record<string, string> = {
+    '/': '/index.html',
+    '/login': '/login.html',
+    '/nav': '/nav.html',
+    '/subscriptions': '/subscriptions.html',
+    '/notes': '/notes.html',
+    '/snippets': '/snippets.html',
+    '/logs': '/logs.html',
+    '/settings': '/settings.html'
+  };
+
+  return pageMap[pathname] ?? null;
 }
 
 function enforceHttps(request: Request): Response | null {

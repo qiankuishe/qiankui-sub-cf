@@ -1,31 +1,6 @@
-export interface AppNavItem {
-  label: string;
-  to: string;
-}
+import type { AppSectionItem } from '../../utils/pageConfig';
+import { APP_SECTION_ITEMS } from '../../utils/pageConfig';
 
-export const APP_NAV_ITEMS: AppNavItem[] = [
-  {
-    label: '网站导航',
-    to: '/app/nav'
-  },
-  {
-    label: '订阅聚合',
-    to: '/app/subscriptions'
-  },
-  {
-    label: '笔记',
-    to: '/app/notes'
-  },
-  {
-    label: '剪贴板',
-    to: '/app/snippets'
-  },
-  {
-    label: '运行日志',
-    to: '/app/logs'
-  },
-  {
-    label: '系统设置',
-    to: '/app/settings'
-  }
-];
+export type AppNavItem = Pick<AppSectionItem, 'label' | 'to'>;
+
+export const APP_NAV_ITEMS: AppNavItem[] = APP_SECTION_ITEMS.map(({ label, to }) => ({ label, to }));

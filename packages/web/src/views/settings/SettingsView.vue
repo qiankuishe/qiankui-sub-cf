@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
 import { authApi } from '../../api';
 import { useUiStore } from '../../stores/ui';
 
 const uiStore = useUiStore();
-const router = useRouter();
 
 const currentOrigin = computed(() => window.location.origin);
 const appearanceSectionId = 'settings-appearance';
@@ -31,7 +29,7 @@ onUnmounted(() => {
 async function logout() {
   await authApi.logout().catch(() => undefined);
   uiStore.showToast('已退出登录');
-  await router.push('/login');
+  window.location.replace('/login');
 }
 </script>
 

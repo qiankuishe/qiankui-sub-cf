@@ -1,11 +1,8 @@
-export const DEFAULT_APP_ROUTE = '/app/nav';
+import { DEFAULT_APP_ROUTE, isAppRoutePath } from './pageConfig';
+export { DEFAULT_APP_ROUTE, isAppRoutePath } from './pageConfig';
 
 const LAST_APP_ROUTE_KEY = 'qiankui:last-app-route';
 const ROUTE_SCROLL_KEY_PREFIX = 'qiankui:scroll:';
-
-export function isAppRoutePath(route: string | null | undefined): route is string {
-  return typeof route === 'string' && route.startsWith('/app/');
-}
 
 export function readLastAppRoute(): string {
   if (typeof window === 'undefined') {

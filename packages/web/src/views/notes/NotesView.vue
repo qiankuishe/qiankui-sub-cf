@@ -2,7 +2,6 @@
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
 import { useNotesStore } from '../../stores/notes';
 import { useUiStore } from '../../stores/ui';
 import { formatDateTime } from '../../utils/date';
@@ -11,7 +10,7 @@ marked.setOptions({ breaks: true, gfm: true });
 
 const notesStore = useNotesStore();
 const uiStore = useUiStore();
-const route = useRoute();
+const initialFocusId = new URLSearchParams(window.location.search).get('focus');
 
 const selectedNoteId = ref<string | null>(null);
 const editTitle = ref('');
@@ -20,6 +19,7 @@ const previewMode = ref(false);
 const saveState = ref<'idle' | 'saving' | 'saved'>('idle');
 const deleteTargetId = ref<string | null>(null);
 const highlightedNoteId = ref<string | null>(null);
+let initialFocusHandled = false;
 let saveTimer: number | undefined;
 let hydrating = false;
 
@@ -68,17 +68,18 @@ onUnmounted(() => {
 });
 
 watch(
-  () => [route.query.focus, notesStore.notes] as const,
-  async ([focusId]) => {
-    if (typeof focusId !== 'string' || !focusId || !notesStore.notes.some((note) => note.id === focusId)) {
+  () => notesStore.notes,
+  async () => {
+    if (initialFocusHandled || !initialFocusId || !notesStore.notes.some((note) => note.id === initialFocusId)) {
       return;
     }
-    selectNote(focusId);
-    highlightedNoteId.value = focusId;
+    initialFocusHandled = true;
+    selectNote(initialFocusId);
+    highlightedNoteId.value = initialFocusId;
     await nextTick();
-    document.querySelector(`[data-note-id="${focusId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.querySelector(`[data-note-id="${initialFocusId}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     window.setTimeout(() => {
-      if (highlightedNoteId.value === focusId) {
+      if (highlightedNoteId.value === initialFocusId) {
         highlightedNoteId.value = null;
       }
     }, 2200);

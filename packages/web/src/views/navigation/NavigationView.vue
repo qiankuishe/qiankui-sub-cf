@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import FaviconImage from '../../components/FaviconImage.vue';
 import type { NavigationCategory, NavigationLink } from '../../api';
 import { useNavigationStore } from '../../stores/navigation';
@@ -29,7 +28,6 @@ const searchEngines: Record<SearchEngineKey, { label: string; prefix: string }> 
   local: { label: '站内', prefix: '' }
 };
 
-const router = useRouter();
 const navigationStore = useNavigationStore();
 const notesStore = useNotesStore();
 const snippetsStore = useSnippetsStore();
@@ -383,11 +381,11 @@ async function openSearchResult(result: SearchResult) {
   }
 
   if (result.type === 'note') {
-    await router.push({ name: 'notes', query: { focus: result.id } });
+    window.location.assign(`/notes?focus=${encodeURIComponent(result.id)}`);
     return;
   }
 
-  await router.push({ name: 'snippets', query: { focus: result.id } });
+  window.location.assign(`/snippets?focus=${encodeURIComponent(result.id)}`);
 }
 </script>
 

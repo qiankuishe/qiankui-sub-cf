@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
 import { useUiStore, type SecondaryNavItem } from '../../stores/ui';
 import { APP_NAV_ITEMS } from './nav';
 
 const uiStore = useUiStore();
-const router = useRouter();
 
 const props = defineProps<{
   currentPath: string;
@@ -45,10 +43,7 @@ async function handlePrimaryClick(itemTo: string) {
   }
 
   if (!isCurrent(itemTo)) {
-    await router.push(itemTo);
-    if (props.secondaryItems.length) {
-      await revealGroup(itemTo);
-    }
+    window.location.assign(itemTo);
   }
 }
 

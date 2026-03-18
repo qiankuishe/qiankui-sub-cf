@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
 import type { SnippetRecord, SnippetType } from '../../api';
 import { useSnippetsStore } from '../../stores/snippets';
 import { useUiStore } from '../../stores/ui';
@@ -8,7 +7,10 @@ import { formatDateTime } from '../../utils/date';
 
 const snippetsStore = useSnippetsStore();
 const uiStore = useUiStore();
-const route = useRoute();
+const searchParams = new URLSearchParams(window.location.search);
+const initialType = searchParams.get('type');
+const initialQuery = searchParams.get('q');
+const initialFocusId = searchParams.get('focus');
 
 const searchQuery = ref('');
 const filterType = ref<SnippetType | 'all'>('all');
@@ -27,6 +29,7 @@ const highlightedSnippetId = ref<string | null>(null);
 const clipboardBusy = ref<'idle' | 'text' | 'image' | 'draft' | 'editor'>('idle');
 const expandedSnippetIds = ref<string[]>([]);
 const draftTitleInput = ref<HTMLInputElement | null>(null);
+let initialFocusHandled = false;
 
 const captureSectionId = 'clipboard-capture';
 const typeOptions: Array<{ key: SnippetType; label: string }> = [
@@ -104,11 +107,11 @@ watch(
       title: '剪贴板',
       activeKey: String(activeType),
       items: [
-        { key: 'all', label: '全部', badge: String(totalCount.value), to: '/app/snippets' },
-        { key: 'text', label: '文本', badge: String(typeCounts.value.text), to: '/app/snippets?type=text' },
-        { key: 'code', label: '代码', badge: String(typeCounts.value.code), to: '/app/snippets?type=code' },
-        { key: 'link', label: '链接', badge: String(typeCounts.value.link), to: '/app/snippets?type=link' },
-        { key: 'image', label: '图片', badge: String(typeCounts.value.image), to: '/app/snippets?type=image' }
+        { key: 'all', label: '全部', badge: String(totalCount.value), to: '/snippets' },
+        { key: 'text', label: '文本', badge: String(typeCounts.value.text), to: '/snippets?type=text' },
+        { key: 'code', label: '代码', badge: String(typeCounts.value.code), to: '/snippets?type=code' },
+        { key: 'link', label: '链接', badge: String(typeCounts.value.link), to: '/snippets?type=link' },
+        { key: 'image', label: '图片', badge: String(typeCounts.value.image), to: '/snippets?type=image' }
       ]
     });
   },
@@ -116,27 +119,17 @@ watch(
 );
 
 watch(
-  () => route.query.type,
-  (value) => {
-    if (typeof value === 'string' && ['text', 'code', 'link', 'image'].includes(value)) {
-      filterType.value = value as SnippetType;
+  () => snippetsStore.snippets,
+  async () => {
+    if (initialFocusHandled) {
       return;
     }
-    if (!value) {
-      filterType.value = 'all';
-    }
-  },
-  { immediate: true }
-);
-
-watch(
-  () => [route.query.focus, snippetsStore.snippets] as const,
-  async ([focusId]) => {
     const target =
-      typeof focusId === 'string' && focusId ? snippetsStore.snippets.find((snippet) => snippet.id === focusId) ?? null : null;
+      initialFocusId ? snippetsStore.snippets.find((snippet) => snippet.id === initialFocusId) ?? null : null;
     if (!target) {
       return;
     }
+    initialFocusHandled = true;
 
     searchQuery.value = '';
     filterType.value = 'all';
@@ -153,11 +146,11 @@ watch(
 );
 
 onMounted(async () => {
-  if (typeof route.query.q === 'string') {
-    searchQuery.value = route.query.q;
+  if (initialQuery) {
+    searchQuery.value = initialQuery;
   }
-  if (typeof route.query.type === 'string' && ['all', 'text', 'code', 'link', 'image'].includes(route.query.type)) {
-    filterType.value = route.query.type as SnippetType | 'all';
+  if (initialType && ['all', 'text', 'code', 'link', 'image'].includes(initialType)) {
+    filterType.value = initialType as SnippetType | 'all';
   }
   await snippetsStore.loadAll({ type: 'all' });
 });
