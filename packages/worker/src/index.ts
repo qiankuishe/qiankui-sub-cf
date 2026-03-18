@@ -1333,7 +1333,8 @@ async function getAllSources(env: Env): Promise<SourceRecord[]> {
 }
 
 async function getSourceIndex(env: Env): Promise<string[]> {
-  return (await env.APP_KV.get(APP_KEYS.sourceIndex, 'json')) ?? [];
+  const ids = await env.APP_KV.get(APP_KEYS.sourceIndex, 'json');
+  return Array.isArray(ids) ? ids.filter((value): value is string => typeof value === 'string') : [];
 }
 
 async function saveSourceIndex(env: Env, ids: string[]): Promise<void> {
@@ -1498,7 +1499,8 @@ async function appendLog(env: Env, action: string, detail?: string): Promise<voi
 }
 
 async function getLogs(env: Env): Promise<LogRecord[]> {
-  return (await env.APP_KV.get(APP_KEYS.logsRecent, 'json')) ?? [];
+  const logs = await env.APP_KV.get(APP_KEYS.logsRecent, 'json');
+  return Array.isArray(logs) ? (logs.filter((log): log is LogRecord => Boolean(log && typeof log === 'object')) as LogRecord[]) : [];
 }
 
 async function ensureNavigationSeeded(env: Env): Promise<void> {
@@ -1577,7 +1579,8 @@ async function getNavigationCategories(env: Env): Promise<NavigationCategoryReco
 }
 
 async function getNavigationCategoryIndex(env: Env): Promise<string[]> {
-  return (await env.APP_KV.get(APP_KEYS.navCategoryIndex, 'json')) ?? [];
+  const ids = await env.APP_KV.get(APP_KEYS.navCategoryIndex, 'json');
+  return Array.isArray(ids) ? ids.filter((value): value is string => typeof value === 'string') : [];
 }
 
 async function saveNavigationCategoryIndex(env: Env, ids: string[]): Promise<void> {
@@ -1657,7 +1660,8 @@ async function getNavigationLink(env: Env, id: string): Promise<NavigationLinkRe
 }
 
 async function getNavigationLinkIndex(env: Env, categoryId: string): Promise<string[]> {
-  return (await env.APP_KV.get(`nav:link:index:${categoryId}`, 'json')) ?? [];
+  const ids = await env.APP_KV.get(`nav:link:index:${categoryId}`, 'json');
+  return Array.isArray(ids) ? ids.filter((value): value is string => typeof value === 'string') : [];
 }
 
 async function saveNavigationLinkIndex(env: Env, categoryId: string, ids: string[]): Promise<void> {
@@ -1769,7 +1773,8 @@ async function recordNavigationLinkVisit(env: Env, link: NavigationLinkRecord): 
 }
 
 async function getNoteIndex(env: Env): Promise<string[]> {
-  return (await env.APP_KV.get(APP_KEYS.noteIndex, 'json')) ?? [];
+  const ids = await env.APP_KV.get(APP_KEYS.noteIndex, 'json');
+  return Array.isArray(ids) ? ids.filter((value): value is string => typeof value === 'string') : [];
 }
 
 async function saveNoteIndex(env: Env, ids: string[]): Promise<void> {
@@ -1820,7 +1825,8 @@ async function getAllNotes(env: Env): Promise<NoteRecord[]> {
 }
 
 async function getSnippetIndex(env: Env): Promise<string[]> {
-  return (await env.APP_KV.get(APP_KEYS.snippetIndex, 'json')) ?? [];
+  const ids = await env.APP_KV.get(APP_KEYS.snippetIndex, 'json');
+  return Array.isArray(ids) ? ids.filter((value): value is string => typeof value === 'string') : [];
 }
 
 async function saveSnippetIndex(env: Env, ids: string[]): Promise<void> {
