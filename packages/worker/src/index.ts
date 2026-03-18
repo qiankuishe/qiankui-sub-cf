@@ -644,6 +644,10 @@ app.get('/sub', async (c) => {
 
 app.notFound(async (c) => {
   if (c.env.ASSETS) {
+    if (shouldServeSpaIndex(c.req.raw)) {
+      const indexUrl = new URL('/index.html', c.req.raw.url);
+      return c.env.ASSETS.fetch(new Request(indexUrl.toString(), c.req.raw));
+    }
     return c.env.ASSETS.fetch(c.req.raw);
   }
   return c.text('Not Found', 404);
@@ -657,6 +661,28 @@ export default {
 };
 
 export { app };
+
+function shouldServeSpaIndex(request: Request): boolean {
+  if (request.method !== 'GET') {
+    return false;
+  }
+
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+
+  if (
+    pathname.startsWith('/api/') ||
+    pathname === '/sub' ||
+    pathname === '/health' ||
+    pathname.startsWith('/assets/') ||
+    pathname === '/favicon.ico' ||
+    pathname === '/logo.png'
+  ) {
+    return false;
+  }
+
+  return !pathname.split('/').pop()?.includes('.');
+}
 
 function enforceHttps(request: Request): Response | null {
   const url = new URL(request.url);
