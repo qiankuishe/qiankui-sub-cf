@@ -13,7 +13,7 @@ export const APP_SECTION_ITEMS: AppSectionItem[] = [
   { key: 'navigation', label: '网站导航', to: '/nav', title: '网站导航', subtitle: '' },
   { key: 'subscriptions', label: '订阅聚合', to: '/subscriptions', title: '订阅聚合', subtitle: '' },
   { key: 'notes', label: '笔记', to: '/notes', title: '笔记', subtitle: '' },
-  { key: 'snippets', label: '片段库', to: '/snippets', title: '片段库', subtitle: '' },
+  { key: 'snippets', label: '剪贴板', to: '/snippets', title: '剪贴板', subtitle: '' },
   { key: 'logs', label: '运行日志', to: '/logs', title: '运行日志', subtitle: '' },
   { key: 'settings', label: '系统设置', to: '/settings', title: '系统设置', subtitle: '' }
 ];
