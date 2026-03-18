@@ -93,6 +93,8 @@ const SESSION_TTL_SECONDS = 24 * 60 * 60;
 const RESET_AFTER_MS = 24 * 60 * 60 * 1000;
 const MAX_REDIRECTS = 3;
 const MAX_IMAGE_SNIPPET_BYTES = 350 * 1024;
+const MAX_FAVICON_BYTES = 64 * 1024;
+const FAVICON_CACHE_TTL_SECONDS = 30 * 24 * 60 * 60;
 const LOCK_LEVELS = [
   { attempts: 10, durationMs: 5 * 60 * 1000 },
   { attempts: 8, durationMs: 15 * 60 * 1000 },
@@ -114,7 +116,8 @@ const APP_KEYS = {
 const CACHE_KEYS = {
   nodes: 'cache:nodes',
   format: (format: OutputFormat) => `cache:format:${format}`,
-  dns: (host: string, type: string) => `dns:${host}:${type}`
+  dns: (host: string, type: string) => `dns:${host}:${type}`,
+  favicon: (hostname: string) => `favicon:${hostname}`
 };
 
 app.use('*', async (c, next) => {
@@ -364,6 +367,36 @@ app.get('/api/navigation', async (c) => {
     totalCategories: categories.length,
     totalLinks: categories.reduce((sum, category) => sum + category.links.length, 0)
   });
+});
+
+app.get('/api/favicon', async (c) => {
+  const rawUrl = c.req.query('url')?.trim();
+  if (!rawUrl) {
+    return c.json({ error: '缺少 url 参数' }, 400);
+  }
+
+  let hostname = '';
+  try {
+    hostname = new URL(fixUrl(rawUrl)).hostname.toLowerCase();
+  } catch {
+    return c.json({ error: 'favicon url 无效' }, 400);
+  }
+
+  if (!hostname) {
+    return c.json({ error: 'favicon host 无效' }, 400);
+  }
+
+  const cached = await c.env.CACHE_KV.get(CACHE_KEYS.favicon(hostname), 'json');
+  if (cached && typeof cached === 'object' && typeof (cached as { dataUrl?: unknown }).dataUrl === 'string') {
+    return c.json({ dataUrl: (cached as { dataUrl: string }).dataUrl, cached: true });
+  }
+
+  const fetched = await fetchAndCacheFavicon(c.env, hostname);
+  if (!fetched) {
+    return c.json({ error: '未找到可用 favicon' }, 404);
+  }
+
+  return c.json({ dataUrl: fetched, cached: false });
 });
 
 app.post('/api/navigation/categories', async (c) => {
@@ -1008,6 +1041,90 @@ async function fetchSubscription(env: Env, rawUrl: string, depth = 0): Promise<{
   }
 
   return { text: await response.text() };
+}
+
+async function fetchAndCacheFavicon(env: Env, hostname: string): Promise<string | null> {
+  const faviconSources = [
+    `https://www.google.com/s2/favicons?sz=64&domain=${encodeURIComponent(hostname)}`,
+    `https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(`https://${hostname}`)}&size=64`,
+    `https://${hostname}/favicon.ico`
+  ];
+
+  for (const source of faviconSources) {
+    try {
+      const result = await fetchFaviconSource(env, source);
+      if (!result) {
+        continue;
+      }
+
+      const payload = JSON.stringify({ dataUrl: result.dataUrl, cachedAt: Date.now(), source });
+      await env.CACHE_KV.put(CACHE_KEYS.favicon(hostname), payload, { expirationTtl: FAVICON_CACHE_TTL_SECONDS });
+      return result.dataUrl;
+    } catch {
+      // ignore favicon source failures and try the next one
+    }
+  }
+
+  return null;
+}
+
+async function fetchFaviconSource(env: Env, rawUrl: string): Promise<{ dataUrl: string } | null> {
+  const url = new URL(rawUrl);
+  await assertSafeUrl(env, url);
+
+  const response = await fetch(url.toString(), {
+    headers: { 'User-Agent': 'QianKui-Sub-CF/0.1' },
+    redirect: 'follow'
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const contentType = (response.headers.get('content-type') || '').toLowerCase();
+  if (!looksLikeFaviconContentType(contentType)) {
+    return null;
+  }
+
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  if (!bytes.byteLength || bytes.byteLength > MAX_FAVICON_BYTES) {
+    return null;
+  }
+
+  const mimeType = normalizeFaviconContentType(contentType);
+  return {
+    dataUrl: `data:${mimeType};base64,${toBase64(bytes)}`
+  };
+}
+
+function looksLikeFaviconContentType(contentType: string): boolean {
+  if (!contentType) {
+    return true;
+  }
+
+  return (
+    contentType.startsWith('image/') ||
+    contentType.includes('icon') ||
+    contentType.includes('svg') ||
+    contentType.includes('octet-stream')
+  );
+}
+
+function normalizeFaviconContentType(contentType: string): string {
+  if (!contentType) {
+    return 'image/png';
+  }
+
+  return contentType.split(';', 1)[0]?.trim() || 'image/png';
+}
+
+function toBase64(bytes: Uint8Array): string {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+  }
+  return btoa(binary);
 }
 
 async function assertSafeUrl(env: Env, url: URL): Promise<void> {

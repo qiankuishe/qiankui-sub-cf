@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { faviconApi } from '../api';
 import { getFavicon as getCachedFavicon, setFavicon as cacheFavicon } from '../utils/faviconCache';
 
 const props = withDefaults(
@@ -64,7 +65,19 @@ async function loadCache() {
   }
 
   const cached = await getCachedFavicon(props.url);
-  cachedDataUrl.value = cached;
+  if (cached) {
+    cachedDataUrl.value = cached;
+    cacheChecked.value = true;
+    return;
+  }
+
+  try {
+    const remote = await faviconApi.get(props.url);
+    cachedDataUrl.value = remote.dataUrl;
+    await cacheFavicon(props.url, remote.dataUrl);
+  } catch {
+    cachedDataUrl.value = null;
+  }
   cacheChecked.value = true;
 }
 

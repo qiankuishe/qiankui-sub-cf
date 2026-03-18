@@ -215,6 +215,11 @@ export const navigationApi = {
     })
 };
 
+export const faviconApi = {
+  get: (url: string) =>
+    request<{ dataUrl: string; cached: boolean }>(`/api/favicon?url=${encodeURIComponent(url)}`)
+};
+
 export const notesApi = {
   getAll: () => request<{ notes: NoteRecord[] }>('/api/notes'),
   create: (payload?: { title?: string; content?: string }) =>
