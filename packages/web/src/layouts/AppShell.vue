@@ -13,11 +13,13 @@ const uiStore = useUiStore();
 
 const title = computed(() => String(route.meta.title ?? 'QianKui'));
 const subtitle = computed(() => String(route.meta.subtitle ?? ''));
+const RESTORE_SCROLL_WINDOW_MS = 5000;
 let scrollFrame = 0;
 let restoreRunId = 0;
+let initialHistoryScrollRestoration: History['scrollRestoration'] | null = null;
 
-function shouldRestoreScrollPosition() {
-  return isAppRoutePath(route.fullPath) && !route.hash && typeof route.query.focus !== 'string';
+function shouldRestoreScrollPosition(path = route.fullPath) {
+  return isAppRoutePath(path) && !route.hash && typeof route.query.focus !== 'string';
 }
 
 function persistRouteScroll(path = route.fullPath) {
@@ -43,35 +45,44 @@ function handlePageHide() {
   persistRouteScroll();
 }
 
+function handlePageShow() {
+  void restoreRouteScroll();
+}
+
 async function restoreRouteScroll(path = route.fullPath) {
   if (!isAppRoutePath(path)) {
     return;
   }
 
   const targetTop = readAppRouteScroll(path);
-  if (targetTop <= 0 || !shouldRestoreScrollPosition()) {
+  if (targetTop <= 0 || !shouldRestoreScrollPosition(path)) {
     return;
   }
 
   const runId = ++restoreRunId;
   await nextTick();
 
-  let attempts = 0;
+  const startedAt = Date.now();
   const apply = () => {
     if (runId !== restoreRunId) {
       return;
     }
 
-    const maxTop = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const scrollingElement = document.scrollingElement ?? document.documentElement;
+    const maxTop = Math.max(0, scrollingElement.scrollHeight - window.innerHeight);
     const nextTop = Math.min(targetTop, maxTop);
-    window.scrollTo({ top: nextTop, behavior: 'auto' });
-    attempts += 1;
+    const distance = Math.abs(window.scrollY - nextTop);
+    if (distance > 2) {
+      window.scrollTo(0, nextTop);
+    }
 
-    if (attempts >= 12 || Math.abs(window.scrollY - nextTop) <= 2) {
+    const hasEnoughHeight = maxTop >= targetTop - 2;
+    const restored = Math.abs(window.scrollY - nextTop) <= 2;
+    if ((hasEnoughHeight && restored) || Date.now() - startedAt >= RESTORE_SCROLL_WINDOW_MS) {
       return;
     }
 
-    window.setTimeout(apply, attempts < 4 ? 90 : 160);
+    window.setTimeout(apply, hasEnoughHeight ? 220 : 120);
   };
 
   apply();
@@ -123,8 +134,14 @@ async function handleSecondarySelect(item: SecondaryNavItem) {
 }
 
 onMounted(() => {
+  if ('scrollRestoration' in window.history) {
+    initialHistoryScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = 'manual';
+  }
+
   window.addEventListener('scroll', handleWindowScroll, { passive: true });
   window.addEventListener('pagehide', handlePageHide);
+  window.addEventListener('pageshow', handlePageShow);
   void restoreRouteScroll();
 });
 
@@ -137,6 +154,10 @@ onUnmounted(() => {
     scrollFrame = 0;
   }
   restoreRunId += 1;
+  window.removeEventListener('pageshow', handlePageShow);
+  if (initialHistoryScrollRestoration) {
+    window.history.scrollRestoration = initialHistoryScrollRestoration;
+  }
 });
 </script>
 
