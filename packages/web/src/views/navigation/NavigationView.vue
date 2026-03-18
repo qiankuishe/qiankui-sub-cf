@@ -361,109 +361,13 @@ async function openSearchResult(result: SearchResult) {
 </script>
 
 <template>
-  <div class="page-shell page-shell-wide">
-    <section class="panel nav-search-panel">
-      <div class="section-head">
-        <div>
-          <h2>站点搜索</h2>
-          <p class="section-subtitle">保留原导航页的入口感：外部搜索、站内联搜、分类跳转和最近访问都放在同一页里。</p>
-        </div>
-        <button class="ghost" @click="isEditMode = !isEditMode">
-          {{ isEditMode ? '退出编辑' : '进入编辑' }}
-        </button>
-      </div>
-
-      <div class="nav-engine-row">
-        <button
-          v-for="(engine, key) in searchEngines"
-          :key="key"
-          class="nav-engine-chip"
-          :class="{ 'nav-engine-chip-active': searchEngine === key }"
-          @click="searchEngine = key as SearchEngineKey"
-        >
-          {{ engine.label }}
-        </button>
-      </div>
-
-      <form class="nav-search-form" @submit.prevent="handleSearchSubmit">
-        <input
-          v-model="searchQuery"
-          :placeholder="searchEngine === 'local' ? '搜索站内的导航、笔记和片段...' : `搜索 ${searchEngines[searchEngine].label}...`"
-        />
-        <button class="primary" type="submit">{{ searchEngine === 'local' ? '搜索' : '打开' }}</button>
-      </form>
-
-      <div v-if="searchEngine === 'local' && searchQuery.trim()" class="nav-search-results">
-        <div class="section-head nav-search-results-head">
-          <div>
-            <h3>站内结果</h3>
-            <p class="section-subtitle">会同时搜索导航、笔记和片段库。</p>
-          </div>
-          <span class="inline-status">{{ localSearchResults.length }} 条</span>
-        </div>
-
-        <div v-if="localSearchResults.length === 0" class="empty-state">没有匹配结果。</div>
-        <div v-else class="nav-search-results-list">
-          <button
-            v-for="result in localSearchResults"
-            :key="`${result.type}-${result.id}`"
-            class="nav-search-result"
-            @click="openSearchResult(result)"
-          >
-            <span class="nav-search-result-type">{{ result.type }}</span>
-            <div class="nav-search-result-body">
-              <strong>{{ result.title }}</strong>
-              <p>{{ result.description }}</p>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      <div class="nav-hero-grid">
-        <div class="metric-card">
-          <span>分类数量</span>
-          <strong>{{ navigationStore.categories.length }}</strong>
-        </div>
-        <div class="metric-card">
-          <span>站点数量</span>
-          <strong>{{ navigationStore.totalLinks }}</strong>
-        </div>
-        <div class="metric-card">
-          <span>笔记联搜</span>
-          <strong>{{ notesStore.notes.length }}</strong>
-        </div>
-        <div class="metric-card">
-          <span>片段联搜</span>
-          <strong>{{ snippetsStore.snippets.length }}</strong>
-        </div>
-      </div>
-    </section>
-
-    <section v-if="recentLinks.length" class="panel">
-      <div class="section-head">
-        <div>
-          <h2>最近访问</h2>
-          <p class="section-subtitle">保留原导航页的最近访问入口，方便回到刚打开过的网站。</p>
-        </div>
-      </div>
-
-      <div class="nav-recent-grid">
-        <button v-for="link in recentLinks" :key="link.id" class="nav-recent-item" @click="openLink(link)">
-          <FaviconImage :url="link.url" :title="link.title" class-name="nav-recent-favicon" />
-          <div>
-            <strong>{{ link.title }}</strong>
-            <p>{{ link.categoryName }} · {{ formatDateTime(link.lastVisitedAt ?? undefined, '刚刚') }}</p>
-          </div>
-        </button>
-      </div>
-    </section>
-
-    <div class="nav-workspace nav-workspace-stacked">
-      <section class="panel nav-sidebar-panel">
+  <div class="page-shell page-shell-wide nav-page-layout">
+    <aside class="panel nav-sidebar-panel nav-sidebar-sticky">
+      <div class="nav-sidebar-inner">
         <div class="section-head">
           <div>
             <h2>分类定位</h2>
-            <p class="section-subtitle">这里保留原导航页的页内快速定位，而不是单纯筛掉别的分类。</p>
+            <p class="section-subtitle">二级菜单固定在左侧，右边内容单独滚动，才能真正做到快速定位。</p>
           </div>
           <button class="primary" @click="openCategoryDialog()">新增分类</button>
         </div>
@@ -516,6 +420,104 @@ async function openSearchResult(result: SearchResult) {
               >
                 删除
               </button>
+            </div>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="nav-main-column">
+      <section class="panel nav-search-panel">
+        <div class="section-head">
+          <div>
+            <h2>站点搜索</h2>
+            <p class="section-subtitle">外部搜索、站内联搜、分类跳转和最近访问都保留在同一条主工作流里。</p>
+          </div>
+          <button class="ghost" @click="isEditMode = !isEditMode">
+            {{ isEditMode ? '退出编辑' : '进入编辑' }}
+          </button>
+        </div>
+
+        <div class="nav-engine-row">
+          <button
+            v-for="(engine, key) in searchEngines"
+            :key="key"
+            class="nav-engine-chip"
+            :class="{ 'nav-engine-chip-active': searchEngine === key }"
+            @click="searchEngine = key as SearchEngineKey"
+          >
+            {{ engine.label }}
+          </button>
+        </div>
+
+        <form class="nav-search-form" @submit.prevent="handleSearchSubmit">
+          <input
+            v-model="searchQuery"
+            :placeholder="searchEngine === 'local' ? '搜索站内的导航、笔记和片段...' : `搜索 ${searchEngines[searchEngine].label}...`"
+          />
+          <button class="primary" type="submit">{{ searchEngine === 'local' ? '搜索' : '打开' }}</button>
+        </form>
+
+        <div v-if="searchEngine === 'local' && searchQuery.trim()" class="nav-search-results">
+          <div class="section-head nav-search-results-head">
+            <div>
+              <h3>站内结果</h3>
+              <p class="section-subtitle">会同时搜索导航、笔记和片段库。</p>
+            </div>
+            <span class="inline-status">{{ localSearchResults.length }} 条</span>
+          </div>
+
+          <div v-if="localSearchResults.length === 0" class="empty-state">没有匹配结果。</div>
+          <div v-else class="nav-search-results-list">
+            <button
+              v-for="result in localSearchResults"
+              :key="`${result.type}-${result.id}`"
+              class="nav-search-result"
+              @click="openSearchResult(result)"
+            >
+              <span class="nav-search-result-type">{{ result.type }}</span>
+              <div class="nav-search-result-body">
+                <strong>{{ result.title }}</strong>
+                <p>{{ result.description }}</p>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="nav-hero-grid">
+          <div class="metric-card">
+            <span>分类数量</span>
+            <strong>{{ navigationStore.categories.length }}</strong>
+          </div>
+          <div class="metric-card">
+            <span>站点数量</span>
+            <strong>{{ navigationStore.totalLinks }}</strong>
+          </div>
+          <div class="metric-card">
+            <span>笔记联搜</span>
+            <strong>{{ notesStore.notes.length }}</strong>
+          </div>
+          <div class="metric-card">
+            <span>片段联搜</span>
+            <strong>{{ snippetsStore.snippets.length }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section v-if="recentLinks.length" class="panel">
+        <div class="section-head">
+          <div>
+            <h2>最近访问</h2>
+            <p class="section-subtitle">保留原导航页的最近访问入口，方便回到刚打开过的网站。</p>
+          </div>
+        </div>
+
+        <div class="nav-recent-grid">
+          <button v-for="link in recentLinks" :key="link.id" class="nav-recent-item" @click="openLink(link)">
+            <FaviconImage :url="link.url" :title="link.title" class-name="nav-recent-favicon" />
+            <div>
+              <strong>{{ link.title }}</strong>
+              <p>{{ link.categoryName }} · {{ formatDateTime(link.lastVisitedAt ?? undefined, '刚刚') }}</p>
             </div>
           </button>
         </div>

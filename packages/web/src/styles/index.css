@@ -804,6 +804,30 @@ p {
   align-items: start;
 }
 
+.nav-page-layout {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.nav-main-column,
+.nav-sidebar-inner {
+  display: grid;
+  gap: 18px;
+}
+
+.nav-sidebar-sticky {
+  position: sticky;
+  top: 10px;
+  max-height: calc(100vh - 20px);
+  overflow: hidden;
+}
+
+.nav-sidebar-inner {
+  max-height: calc(100vh - 60px);
+}
+
 .nav-sections-panel {
   display: grid;
   gap: 18px;
@@ -818,6 +842,8 @@ p {
   gap: 10px;
   position: sticky;
   top: 0;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .nav-section-link {
@@ -1112,6 +1138,7 @@ p {
   }
 
   .nav-workspace,
+  .nav-page-layout,
   .notes-layout,
   .source-editor-layout,
   .meta-grid,
@@ -1130,6 +1157,15 @@ p {
 
   .nav-section-sidebar {
     position: static;
+  }
+
+  .nav-sidebar-sticky {
+    position: static;
+    max-height: none;
+  }
+
+  .nav-sidebar-inner {
+    max-height: none;
   }
 
   .compact-panel,
