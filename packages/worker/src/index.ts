@@ -141,6 +141,10 @@ const CACHE_KEYS = {
   favicon: (hostname: string) => `favicon:${hostname}`
 };
 
+app.onError((error, c) => {
+  return c.json({ error: error instanceof Error ? error.message : 'Internal Server Error' }, 500);
+});
+
 app.use('*', async (c, next) => {
   const redirected = enforceHttps(c.req.raw);
   if (redirected) {
@@ -490,9 +494,13 @@ app.post('/api/navigation/categories', async (c) => {
     return c.json({ error: '分类名称不能为空' }, 400);
   }
 
-  const category = await createNavigationCategory(c.env, name);
-  await appendLog(c.env, 'nav_category_create', `创建导航分类: ${category.name}`);
-  return c.json({ category });
+  try {
+    const category = await createNavigationCategory(c.env, name);
+    void appendLog(c.env, 'nav_category_create', `创建导航分类: ${category.name}`);
+    return c.json({ category });
+  } catch (error) {
+    return c.json({ error: error instanceof Error ? error.message : '创建分类失败' }, 500);
+  }
 });
 
 app.put('/api/navigation/categories/reorder', async (c) => {
@@ -1487,15 +1495,19 @@ async function getCachedFormat(env: Env, format: OutputFormat): Promise<CachedFo
 }
 
 async function appendLog(env: Env, action: string, detail?: string): Promise<void> {
-  const logs = await getLogs(env);
-  const next: LogRecord = {
-    id: randomToken(6),
-    action,
-    detail: detail ?? null,
-    createdAt: new Date().toISOString()
-  };
-  logs.unshift(next);
-  await env.APP_KV.put(APP_KEYS.logsRecent, JSON.stringify(logs.slice(0, getMaxLogEntries(env))));
+  try {
+    const logs = await getLogs(env);
+    const next: LogRecord = {
+      id: randomToken(6),
+      action,
+      detail: detail ?? null,
+      createdAt: new Date().toISOString()
+    };
+    logs.unshift(next);
+    await env.APP_KV.put(APP_KEYS.logsRecent, JSON.stringify(logs.slice(0, getMaxLogEntries(env))));
+  } catch {
+    // logging should never block the primary workflow
+  }
 }
 
 async function getLogs(env: Env): Promise<LogRecord[]> {
