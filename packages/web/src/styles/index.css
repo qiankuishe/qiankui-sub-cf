@@ -533,6 +533,14 @@ p {
   margin-bottom: 12px;
 }
 
+.section-head-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-left: auto;
+}
+
 .status-pill {
   padding: 8px 14px;
   border-radius: 999px;
@@ -649,19 +657,6 @@ p {
 .search-highlight {
   border-color: rgba(160, 98, 45, 0.52) !important;
   box-shadow: 0 0 0 4px rgba(160, 98, 45, 0.12), 0 18px 32px rgba(160, 98, 45, 0.12);
-}
-
-.page-action-row {
-  width: 100%;
-}
-
-.page-action-row-wide {
-  width: 100%;
-}
-
-.compact-action-row {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .modal-backdrop,
@@ -1191,7 +1186,6 @@ p {
   }
 
   .compact-panel,
-  .page-action-row,
   .subscriptions-layout,
   .snippet-filter {
     width: 100%;

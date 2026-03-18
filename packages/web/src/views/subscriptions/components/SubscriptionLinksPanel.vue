@@ -7,11 +7,13 @@ defineProps<{
   subFormats: SubFormat[];
   lastSaveTime: string;
   cacheStatusText: string;
+  refreshing: boolean;
 }>();
 
 const emit = defineEmits<{
   copy: [url: string];
   qr: [name: string, url: string];
+  refresh: [];
 }>();
 
 function shortenUrl(url: string, maxLength = 54) {
@@ -28,8 +30,13 @@ function shortenUrl(url: string, maxLength = 54) {
       <div>
         <h2>订阅链接</h2>
       </div>
-      <div class="status-pill" :data-status="subInfo?.cacheStatus || 'missing'">
-        {{ cacheStatusText }}
+      <div class="section-head-actions">
+        <div class="status-pill" :data-status="subInfo?.cacheStatus || 'missing'">
+          {{ cacheStatusText }}
+        </div>
+        <button class="ghost small" :disabled="refreshing" @click="emit('refresh')">
+          {{ refreshing ? '刷新中...' : '刷新缓存' }}
+        </button>
       </div>
     </div>
 
