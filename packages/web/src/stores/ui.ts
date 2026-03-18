@@ -16,6 +16,7 @@ export const useUiStore = defineStore('ui', () => {
   const secondaryNavTitle = ref('');
   const secondaryNavItems = ref<SecondaryNavItem[]>([]);
   const secondaryNavActiveKey = ref('');
+  const expandedSidebarSection = ref('');
   let toastTimer: number | undefined;
 
   function applyTheme() {
@@ -66,6 +67,14 @@ export const useUiStore = defineStore('ui', () => {
     secondaryNavActiveKey.value = '';
   }
 
+  function toggleSidebarSection(section: string) {
+    expandedSidebarSection.value = expandedSidebarSection.value === section ? '' : section;
+  }
+
+  function expandSidebarSection(section: string) {
+    expandedSidebarSection.value = section;
+  }
+
   applyTheme();
 
   return {
@@ -75,6 +84,7 @@ export const useUiStore = defineStore('ui', () => {
     secondaryNavTitle,
     secondaryNavItems,
     secondaryNavActiveKey,
+    expandedSidebarSection,
     toggleDarkMode,
     showToast,
     hideToast,
@@ -82,6 +92,8 @@ export const useUiStore = defineStore('ui', () => {
     closeMobileNav,
     setSecondaryNav,
     setSecondaryNavActive,
-    clearSecondaryNav
+    clearSecondaryNav,
+    toggleSidebarSection,
+    expandSidebarSection
   };
 });

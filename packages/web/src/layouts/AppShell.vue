@@ -17,6 +17,21 @@ watch(
   () => route.fullPath,
   () => {
     uiStore.closeMobileNav();
+    const matched = [route.path.startsWith('/app/snippets'), route.path.startsWith('/app/settings'), route.path.startsWith('/app/subscriptions'), route.path.startsWith('/app/nav')].some(Boolean);
+    if (matched && uiStore.secondaryNavItems.length) {
+      const section = route.path.startsWith('/app/nav')
+        ? '/app/nav'
+        : route.path.startsWith('/app/subscriptions')
+          ? '/app/subscriptions'
+          : route.path.startsWith('/app/snippets')
+            ? '/app/snippets'
+            : route.path.startsWith('/app/settings')
+              ? '/app/settings'
+              : '';
+      if (section) {
+        uiStore.expandSidebarSection(section);
+      }
+    }
   }
 );
 

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router';
-import type { SecondaryNavItem } from '../../stores/ui';
+import { useUiStore, type SecondaryNavItem } from '../../stores/ui';
 import { APP_NAV_ITEMS } from './nav';
+
+const uiStore = useUiStore();
 
 defineProps<{
   open: boolean;
@@ -34,17 +36,30 @@ const emit = defineEmits<{
 
         <nav class="sidebar-nav">
           <div v-for="item in APP_NAV_ITEMS" :key="item.to" class="sidebar-group">
-            <RouterLink
-              :to="item.to"
-              class="sidebar-link"
-              :class="{ 'sidebar-link-active': currentPath.startsWith(item.to) }"
-              @click="emit('close')"
-            >
-              <span>{{ item.label }}</span>
-              <small>{{ item.caption }}</small>
-            </RouterLink>
+            <div class="sidebar-link-wrap">
+              <RouterLink
+                :to="item.to"
+                class="sidebar-link"
+                :class="{ 'sidebar-link-active': currentPath.startsWith(item.to) }"
+                @click="emit('close')"
+              >
+                <span>{{ item.label }}</span>
+                <small>{{ item.caption }}</small>
+              </RouterLink>
 
-            <section v-if="currentPath.startsWith(item.to) && secondaryItems.length" class="mobile-secondary-nav">
+              <button
+                v-if="currentPath.startsWith(item.to) && secondaryItems.length"
+                class="sidebar-expand-button"
+                @click="uiStore.toggleSidebarSection(item.to)"
+              >
+                {{ uiStore.expandedSidebarSection === item.to ? '收起' : '展开' }}
+              </button>
+            </div>
+
+            <section
+              v-if="currentPath.startsWith(item.to) && secondaryItems.length && uiStore.expandedSidebarSection === item.to"
+              class="mobile-secondary-nav"
+            >
               <div class="mobile-secondary-nav-head">{{ secondaryTitle }}</div>
               <div class="mobile-secondary-nav-list">
                 <button
