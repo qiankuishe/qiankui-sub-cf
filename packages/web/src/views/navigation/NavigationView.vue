@@ -533,7 +533,7 @@ async function openSearchResult(result: SearchResult) {
           </div>
         </div>
 
-        <div v-else-if="!hasLinks" class="panel">
+        <div v-if="!navigationStore.loading && hasCategories && !hasLinks" class="panel">
           <div class="empty-state nav-empty-state">
             <strong>分类还在，但站点已经清空</strong>
             <p>现在可以直接新增站点，或者继续补新的分类。</p>
