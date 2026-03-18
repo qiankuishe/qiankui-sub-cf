@@ -1,3 +1,5 @@
+import { buildLoginRedirectUrl } from '../utils/routeMemory';
+
 export interface Source {
   id: string;
   name: string;
@@ -103,7 +105,7 @@ async function request<T>(url: string, options?: RequestInit & { skipAuthRedirec
 
   const data = (await response.json().catch(() => ({}))) as { error?: string } & T;
   if (response.status === 401 && !options?.skipAuthRedirect) {
-    window.location.href = '/login';
+    window.location.href = buildLoginRedirectUrl();
   }
   if (!response.ok) {
     throw new Error(data.error || '请求失败');

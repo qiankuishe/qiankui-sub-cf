@@ -1,9 +1,10 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import { DEFAULT_APP_ROUTE, isAppRoutePath, readLastAppRoute, rememberAppRoute, resolveAppRoute } from '../utils/routeMemory';
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: '/app/nav'
+    redirect: () => readLastAppRoute()
   },
   {
     path: '/login',
@@ -17,7 +18,7 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
-        redirect: '/app/nav'
+        redirect: () => readLastAppRoute()
       },
       {
         path: 'nav',
@@ -89,6 +90,25 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to) => {
+  if (isAppRoutePath(to.fullPath)) {
+    rememberAppRoute(to.fullPath);
+  }
+
+  if (to.path === '/login') {
+    try {
+      const response = await fetch('/api/auth/check', { credentials: 'include' });
+      const data = (await response.json()) as { authenticated?: boolean };
+      if (data.authenticated) {
+        const redirect = typeof to.query.redirect === 'string' ? to.query.redirect : null;
+        return resolveAppRoute(redirect);
+      }
+    } catch {
+      // noop
+    }
+
+    return true;
+  }
+
   if (!to.matched.some((record) => record.meta.requiresAuth)) {
     return true;
   }
@@ -103,7 +123,12 @@ router.beforeEach(async (to) => {
     // noop
   }
 
-  return '/login';
+  return {
+    path: '/login',
+    query: {
+      redirect: isAppRoutePath(to.fullPath) ? to.fullPath : DEFAULT_APP_ROUTE
+    }
+  };
 });
 
 export default router;
