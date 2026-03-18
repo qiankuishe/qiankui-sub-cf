@@ -3,9 +3,14 @@ export function restartCurrentSection() {
     return;
   }
 
-  if (typeof window.__qiankuiRestartCurrentSection === 'function') {
-    void window.__qiankuiRestartCurrentSection();
-    return;
+  try {
+    window.sessionStorage.clear();
+  } catch {
+    // ignore sessionStorage failures
+  }
+
+  if ('clearResourceTimings' in window.performance) {
+    window.performance.clearResourceTimings();
   }
 
   window.location.reload();
