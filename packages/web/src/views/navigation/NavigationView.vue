@@ -57,6 +57,8 @@ const localSearchReady = ref(false);
 const localSearchLoading = ref(false);
 
 const recentLinks = computed(() => navigationStore.recentLinks.slice(0, 8));
+const hasCategories = computed(() => navigationStore.categories.length > 0);
+const hasLinks = computed(() => navigationStore.totalLinks > 0);
 
 const localSearchResults = computed<SearchResult[]>(() => {
   if (searchEngine.value !== 'local') {
@@ -419,9 +421,17 @@ async function openSearchResult(result: SearchResult) {
           <div>
             <h2>站点搜索</h2>
           </div>
-          <button class="ghost" @click="isEditMode = !isEditMode">
-            {{ isEditMode ? '退出编辑' : '进入编辑' }}
-          </button>
+          <div class="section-head-actions">
+            <button v-if="isEditMode || !hasCategories" class="ghost" @click="openCategoryDialog()">
+              新增分类
+            </button>
+            <button v-if="isEditMode && hasCategories" class="primary" @click="openLinkDialog()">
+              新增站点
+            </button>
+            <button class="ghost" @click="isEditMode = !isEditMode">
+              {{ isEditMode ? '退出编辑' : '进入编辑' }}
+            </button>
+          </div>
         </div>
 
         <div class="nav-engine-row">
@@ -511,6 +521,27 @@ async function openSearchResult(result: SearchResult) {
       <section class="nav-sections-panel">
         <div v-if="navigationStore.loading" class="panel">
           <div class="empty-state">正在加载导航数据...</div>
+        </div>
+
+        <div v-else-if="!hasCategories" class="panel">
+          <div class="empty-state nav-empty-state">
+            <strong>还没有导航分类</strong>
+            <p>你可以先创建一个分类，再往里面添加站点。</p>
+            <div class="dialog-actions">
+              <button class="primary" @click="openCategoryDialog()">新增分类</button>
+            </div>
+          </div>
+        </div>
+
+        <div v-else-if="!hasLinks" class="panel">
+          <div class="empty-state nav-empty-state">
+            <strong>分类还在，但站点已经清空</strong>
+            <p>现在可以直接新增站点，或者继续补新的分类。</p>
+            <div class="dialog-actions">
+              <button class="ghost" @click="openCategoryDialog()">新增分类</button>
+              <button class="primary" @click="openLinkDialog()">新增站点</button>
+            </div>
+          </div>
         </div>
 
         <section
